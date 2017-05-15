@@ -1,0 +1,38 @@
+#include "Token.cpp"
+#include <ostream>
+
+
+int main() {
+	//constructor without conditionals
+	TokenClass a = TokenClass();
+	cout << "\nTesting basic constructor:" << endl;
+	cout << a << endl;
+	//constructor test with conditionals
+	TokenClass b = TokenClass(IDENTIFIER_TOKEN, "COUT");
+	//auto fixing reserverd words test 
+	//before fix
+	cout << "\ntesting constructor with conditionals: (IDENTIFIER_TOKEN, 'VOID')" << endl;
+	cout << b << endl;
+	cout << "\nTesting CheckReserved auto fix for reserved words:(INDENTIFIER_TOKEN should be replaced if string is in reserved words)" << endl;
+	b.CheckReserved();
+	//after fix
+	cout << b << endl;
+
+	//Constructor C tests individual functions in Token Class
+	TokenClass c;
+	cout << "\nTesting individual functions in TokenClass: defaults should be {0, VOID, VOID}" << endl;
+	cout << "Testing GetTokenType()" << endl;
+	cout << c.GetTokenType() << endl;
+	cout << "\nTesting GetTokenTypeName()" << endl;
+	cout << c.GetTokenTypeName() << endl;
+	cout << "\nTesting GetLexeme()" << endl;
+	cout << c.GetLexeme() << endl;
+	
+	//Testing Constructor initial state assignment to CANTMOVE_STATE
+	cout << "\nTesting State.cpp Constructor" << endl;
+	cout << "\nTesting initial state assignment to CANTMOVE_STATE" << endl;
+	StateMachineClass h = StateMachineClass();
+	cout << h.mCurrentState << endl;
+	return 0;
+}
+

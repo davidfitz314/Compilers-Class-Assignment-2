@@ -1,0 +1,16 @@
+void main()
+{
+	int x;
+	x = 2;
+
+	int y;
+	y = 0;
+
+	int z;
+	z = 0;
+	cout << !x << endl;
+	cout << !y << endl;
+	cout << !!z << endl;
+	cout << !y || !x && !!z << endl;
+}
+

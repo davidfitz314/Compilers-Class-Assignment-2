@@ -1,0 +1,30 @@
+﻿Build started 4/4/2016 2:26:46 PM.
+     1>Project "U:\CS4550-Compilers\assignment2\Simple_Compiler.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "Debug\Simple_Compiler.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp Node.cpp Parser.cpp Scanner.cpp StateMachine.cpp Symbol.cpp Token.cpp
+         Token.cpp
+         Symbol.cpp
+     1>Symbol.cpp(15): warning C4018: '<' : signed/unsigned mismatch
+     1>Symbol.cpp(67): warning C4018: '<' : signed/unsigned mismatch
+         StateMachine.cpp
+         Scanner.cpp
+     1>Scanner.cpp(89): warning C4244: 'initializing' : conversion from 'std::streamoff' to 'int', possible loss of data
+         Parser.cpp
+         Node.cpp
+     1>Node.cpp(96): warning C4018: '<' : signed/unsigned mismatch
+     1>Node.cpp(173): warning C4018: '<' : signed/unsigned mismatch
+     1>Node.cpp(185): warning C4018: '<' : signed/unsigned mismatch
+     1>Node.cpp(543): error C2668: 'pow' : ambiguous call to overloaded function
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\math.h(583): could be 'long double pow(long double,int)'
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\math.h(535): or       'float pow(float,int)'
+                 c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\math.h(497): or       'double pow(double,int)'
+                 while trying to match the argument list '(int, int)'
+         main.cpp
+         Generating Code...
+     1>Done Building Project "U:\CS4550-Compilers\assignment2\Simple_Compiler.vcxproj" (build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:03.69

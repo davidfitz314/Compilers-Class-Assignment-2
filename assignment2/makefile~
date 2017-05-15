@@ -1,0 +1,4 @@
+g++ -c StateMachine.cpp
+g++ -c Token.cpp
+g++ -c Scanner.cpp
+g++ main.cpp Scanner.cpp Token.cpp StateMachine.cpp

@@ -1,0 +1,8 @@
+void main()
+{
+/*comment not void*/
+	int sum;
+	sum = 35 + 400;
+	cout << sum;
+}
+//endfile &^*

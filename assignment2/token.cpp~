@@ -1,0 +1,11 @@
+#include "token.h"
+
+TokenClass::TokenClass() 
+{
+	//constructor
+}
+
+TokenClass::TokenClass(TokenType type, const string & lexeme)
+{
+	//initialize type and lexeme here
+}

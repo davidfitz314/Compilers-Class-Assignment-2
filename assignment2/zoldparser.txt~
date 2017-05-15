@@ -1,0 +1,463 @@
+
+
+class Parser
+{
+private:
+	ScannerClass * scan;
+	SymbolTableClass * sym;
+public:
+	Parser(ScannerClass * s_in, SymbolTableClass * sy_in);
+	StartNode * Start();
+	ProgramNode * Program();
+	BlockNode * Block();
+	StatementGroupNode * StatementGroup(); 
+	DeclarationStatementNode * Declaration();
+	AssignmentStatementNode * Assignment();
+	CoutStatementNode * Cout();
+	IfStatementNode * If();
+	WhileStatementNode * While();
+	DoStatementNode * DoWhile();
+	ExpressionNode * Expression();
+	ExpressionNode * Or();
+	ExpressionNode * And();
+	ExpressionNode * PlusMinus();
+	ExpressionNode * Exponent();
+	ExpressionNode * TimesDivide();
+	ExpressionNode * Factor();
+	IntegerNode * Integer();
+	IdentifierNode * Identifier();
+
+	TokenClass Match(TokenType expectedType);
+
+};
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+//delete everything scope
+using namespace std;
+
+Parser::Parser(ScannerClass * s_in, SymbolTableClass * sy_in)
+{
+
+	scan = s_in;
+	sym = sy_in;
+}
+
+StartNode * Parser::Start()
+{
+	MSG("\tParser Start");
+	ProgramNode *p = Program();
+	Match(EOF_TOKEN);
+	
+	StartNode * n = new StartNode(p);
+	return n;
+}
+
+ProgramNode * Parser::Program()
+{
+	MSG("\tParser Program");
+	Match(VOID_TOKEN);
+	Match(MAIN_TOKEN);
+	Match(LPAREN_TOKEN);
+	Match(RPAREN_TOKEN);
+	BlockNode *b = Block();
+
+	ProgramNode *prog = new ProgramNode(b); 
+	return prog;
+}
+
+BlockNode * Parser::Block()
+{
+	MSG("\tParser Block");
+	Match(LCURLY_TOKEN);
+	StatementGroupNode *sgn = StatementGroup();
+	Match(RCURLY_TOKEN);
+
+	BlockNode *block = new BlockNode(sgn);
+	return block;
+}
+
+StatementNode * Parser::Statement()
+{
+	MSG("\tParser StatementGroup");
+	StatementGroupNode * stategroup = new StatementGroupNode;
+	while(true)
+	{
+		TokenClass next_token = scan->PeekNextToken();
+		if(next_token.GetTokenType() == IDENTIFIER_TOKEN)
+		{
+			AssignmentStatementNode * asn = Assignment();
+			stategroup->AddStatement(asn);
+			MSG("Adding a AssignmentStatementNode.");
+		}
+		else if(next_token.GetTokenType() == COUT_TOKEN)
+		{
+			CoutStatementNode * csn = Cout();
+			stategroup->AddStatement(csn);
+			MSG("Adding a CoutStatementNode.");
+		}
+		else if(next_token.GetTokenType() == INT_TOKEN)
+		{
+			DeclarationStatementNode * dsn = Declaration();
+			stategroup->AddStatement(dsn);
+			MSG("Adding a DeclarationStatementNode.");
+		}
+		else if(next_token.GetTokenType() == IF_TOKEN)
+		{
+			IfStatementNode * ifs = If();
+			stategroup->AddStatement(ifs);
+			MSG("Adding a IfStatementNode.");
+		}
+		else if(next_token.GetTokenType() == WHILE_TOKEN)
+		{
+			WhileStatementNode * wfs = While();
+			stategroup->AddStatement(wfs);
+			MSG("Adding a WhileStatementNode.");
+		}
+		else if(next_token.GetTokenType() == DO_TOKEN)
+		{
+			DoStatementNode * wfs = DoWhile();
+			stategroup->AddStatement(wfs);
+			MSG("Adding a WhileStatementNode.");
+		}
+		else
+			break;
+	}
+	return stategroup;
+}
+
+DeclarationStatementNode * Parser::Declaration()
+{
+	MSG("\tParser Declaration");
+	Match(INT_TOKEN);
+	IdentifierNode * idn = Identifier();
+	Match(SEMICOLIN_TOKEN);
+	
+	DeclarationStatementNode * dec = new DeclarationStatementNode(idn);
+	MSG("Creating a DeclarationStatementNode.");
+//test here
+	return dec;
+}
+
+AssignmentStatementNode * Parser::Assignment()
+{
+	MSG("\tParser Assignment");
+	IdentifierNode * idna = Identifier();
+	TokenType tt = scan->PeekNextToken().GetTokenType();
+	AssignmentStatementNode * assign = NULL;
+	if(tt == ASSIGNMENT_TOKEN)
+	{
+		Match(ASSIGNMENT_TOKEN);
+		ExpressionNode * exp = Expression();
+		assign = new AssignmentStatementNode(idna, exp);
+	}
+	else if(tt == PEQUAL_TOKEN)
+	{
+		Match(tt);
+		ExpressionNode * exp = Expression();
+//test here no more scopes	
+		IdentifierNode * idna2 = new IdentifierNode(idna->GetLexeme(), sym);
+		
+		PlusNode * pn = new PlusNode(idna,exp);
+		assign = new AssignmentStatementNode(idna2, pn);
+	}
+	else if(tt == MEQUAL_TOKEN)
+	{
+		Match(tt);
+		ExpressionNode * exp = Expression();
+//test here no more scopes	
+
+		IdentifierNode * idna2 = new IdentifierNode(idna->GetLexeme(), sym);
+
+		MinusNode * mn = new MinusNode(idna, exp);
+		assign = new AssignmentStatementNode(idna2, mn);
+	}
+	Match(SEMICOLIN_TOKEN);
+
+	MSG("Creating a AssignmentStatementNode.");
+	return assign;
+}
+
+CoutStatementNode * Parser::Cout()
+{
+	MSG("\tParser Cout");
+	CoutStatementNode * coutnode = new CoutStatementNode();
+	Match(COUT_TOKEN);
+	Match(INSERTION_TOKEN);
+	ExpressionNode * expr = Expression();
+	coutnode->AddCnode(expr);
+	while(true)
+	{	
+		TokenClass next = scan->PeekNextToken();
+		if(next.GetTokenType() == INSERTION_TOKEN)
+		{
+			Match(next.GetTokenType());
+			TokenClass nNext = scan->PeekNextToken();
+			if(nNext.GetTokenType() == ENDL_TOKEN)
+			{
+				Match(ENDL_TOKEN);
+				coutnode->AddCnode(NULL);
+			}
+			else
+			{
+				ExpressionNode * nexpr = Expression();
+				coutnode->AddCnode(nexpr);
+			}
+		}
+		else
+		{
+			if(next.GetTokenType() == ENDL_TOKEN)
+			{
+				Match(ENDL_TOKEN);
+				coutnode->AddCnode(NULL);
+			}
+			Match(SEMICOLIN_TOKEN);
+			break;
+		}
+	}
+	MSG("Creating a CoutStatementNode.");
+	return coutnode;
+}
+
+IfStatementNode * Parser::If()
+{
+	MSG("\tParser if");
+	Match(IF_TOKEN);
+	Match(LPAREN_TOKEN);
+	ExpressionNode * exp = Expression();
+	Match(RPAREN_TOKEN);
+	StatementNode *st = StatementGroup();
+//if and while are exact same thing, go study this if
+	IfStatementNode * ifs = new IfStatementNode(exp, st);
+	return ifs;
+}
+
+WhileStatementNode * Parser::While()
+{
+	MSG("\tParser While");
+	Match(WHILE_TOKEN);
+	Match(LPAREN_TOKEN);
+	ExpressionNode * exp = Expression();
+	Match(RPAREN_TOKEN);
+//	Match(LCURLY_TOKEN);	
+	StatementNode *stateN = StatementGroup();
+//	Match(RCURLY_TOKEN);
+
+	WhileStatementNode * wfs = new WhileStatementNode(exp, stateN);
+	return wfs;
+}
+
+DoStatementNode * Parser::DoWhile()
+{
+	MSG("\tParser DoWhile");
+	Match(DO_TOKEN);
+	Match(LCURLY_TOKEN);	
+	StatementGroupNode *stategroup = StatementGroup();
+	Match(RCURLY_TOKEN);
+	Match(WHILE_TOKEN);
+	Match(LPAREN_TOKEN);
+	ExpressionNode * exp = Expression();
+	Match(RPAREN_TOKEN);
+	Match(SEMICOLIN_TOKEN);
+
+	DoStatementNode * wfs = new DoStatementNode(exp, stategroup);
+	return wfs;
+}
+
+ExpressionNode * Parser::Expression()
+{
+	return Or();
+}
+//////////////////////////////////////////////////////////////////////////////////////////
+ExpressionNode * Parser::Or()
+{
+	MSG("\tParser Or");
+	ExpressionNode * current = And();
+	TokenType next = scan->PeekNextToken().GetTokenType();
+// use the while structure here
+	while(next == OR_TOKEN)
+	{
+		Match(next);
+		current = new OrNode(current, And());
+	}
+	return current;
+}
+
+ExpressionNode * Parser::And()
+{
+	MSG("\tParser And");
+	ExpressionNode * current = Relational();
+	TokenType next = scan->PeekNextToken().GetTokenType();
+// use the while structure here
+	while(next == AND_TOKEN)
+	{
+		Match(next);
+		current = new AndNode(current, Relational());
+	}
+	return current;
+}
+	
+
+//this is where the relational node lives which is what the expression use to do
+ExpressionNode * Parser::Relational()
+{
+	MSG("\tParser Relational");
+	ExpressionNode * current = PlusMinus();
+	TokenType next = scan->PeekNextToken().GetTokenType();
+	if( next == LESS_TOKEN || next == LESSEQUAL_TOKEN ||
+		next == GREATER_TOKEN || next == GREATEREQUAL_TOKEN ||
+		next == EQUAL_TOKEN || next == NOTEQUAL_TOKEN)
+	{
+		Match(next);
+		if(next == LESS_TOKEN)
+			current = new LessNode(current, PlusMinus());
+		else if(next == LESSEQUAL_TOKEN)
+			current = new LessEqualNode(current, PlusMinus());
+		else if(next == GREATER_TOKEN)
+			current = new GreaterNode(current, PlusMinus());
+		else if(next == GREATEREQUAL_TOKEN)
+			current = new GreaterEqualNode(current, PlusMinus());
+		else if(next == EQUAL_TOKEN)
+			current = new EqualNode(current, PlusMinus());
+		else if(next == NOTEQUAL_TOKEN)
+			current = new NotEqualNode(current, PlusMinus());
+	}
+	return current;
+}
+//side is now plusminus
+ExpressionNode * Parser::PlusMinus()
+{
+	MSG("\tParser PlusMinus");
+	ExpressionNode * current = TimesDivide();
+	while(true)
+	{
+		TokenType tt = scan->PeekNextToken().GetTokenType();
+		if(tt == PLUS_TOKEN)
+		{
+			Match(tt);
+			current = new PlusNode(current, TimesDivide());
+			MSG("Creating a PlusNode.");
+		}
+		else if(tt == MINUS_TOKEN)
+		{
+			Match(tt);
+			current = new MinusNode(current, TimesDivide());
+			MSG("Creating a MinusNode.");
+		}
+		else
+		{
+			return current;
+		}
+	}
+}
+
+// TimesDivide, instead of Term
+ExpressionNode * Parser:: TimesDivide()
+{
+	MSG("\tParser TimesDivide");
+	ExpressionNode * current = Exponent();
+	while(true)
+	{
+		TokenType tt = scan->PeekNextToken().GetTokenType();
+		if(tt == TIMES_TOKEN)
+		{
+			Match(tt);
+			current = new TimesNode(current, Exponent());
+			MSG("Creating a TimesNode.");
+		}
+		else if(tt == DIVIDE_TOKEN)
+		{
+			Match(tt);
+			current = new DivideNode(current, Exponent());
+			MSG("Creating a DivideNode.");
+		}
+		else
+		{
+			return current;
+		}
+	}
+}
+
+ExpressionNode * Parser::Exponent()
+{
+	MSG("\tParser Exponent");
+	ExpressionNode * current = Factor();
+	while(true)
+	{
+		TokenType tt = scan->PeekNextToken().GetTokenType();
+		if(tt == EXP_TOKEN)
+		{
+			Match(tt);
+			current = new ExponentNode(current, Factor());
+			MSG("Creating a ExponentNode.");
+		}
+		else
+		{
+			return current;
+		}
+	}
+}
+
+ExpressionNode * Parser::Factor()
+{
+	MSG("\tParser Factor");
+	ExpressionNode * current = NULL;
+	TokenType tt = scan->PeekNextToken().GetTokenType();
+	if(tt == IDENTIFIER_TOKEN)
+	{
+		current = Identifier();
+	}
+	else if(tt == INTEGER_TOKEN)
+	{
+		current = Integer();
+	}
+	else if(tt == LPAREN_TOKEN)
+	{
+		Match(tt);
+		current = Expression();
+		Match(RPAREN_TOKEN);
+	}
+	else
+	{
+		cerr << "Factor error: did not match correct token type.\n";
+		exit(1);
+		// print an error message and gracefully quite.
+	}
+	return current;
+}
+
+IntegerNode * Parser::Integer()
+{
+	MSG("\tParser Integer");
+	TokenClass tt = Match(INTEGER_TOKEN);
+	IntegerNode * itn = new IntegerNode(atoi(tt.GetLexeme().c_str()));
+	return itn;
+}
+
+IdentifierNode * Parser::Identifier()
+{
+	MSG("\tParser Identifier");
+	TokenClass tt = Match(IDENTIFIER_TOKEN);
+//test here no more scopes	
+	IdentifierNode * idn = new IdentifierNode(tt.GetLexeme(), sym);
+
+	return idn;
+}
+
+TokenClass Parser::Match(TokenType expectedType)
+	{
+	MSG("\tParser Match");
+	TokenClass curtoken = scan->GetNextToken();
+	//cout << curtoken << endl;
+	if(curtoken.GetTokenType() != expectedType)
+	{
+		cerr << "Error in the Parse::Match.\n";
+		cerr << "Expected token type "<< gTokenTypeNames[expectedType] << ", but got type " << curtoken.GetTokenTypeName() << endl;
+		exit(1);
+	}
+	MSG("\tSuccessfully matched token type: " << curtoken.GetTokenTypeName() << ". Lexeme: \"" << curtoken.GetLexeme() << "\"");
+	return curtoken;
+}
